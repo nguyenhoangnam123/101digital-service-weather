@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -e
+
+docker compose -f docker-compose.ci.yml run --rm -v $(pwd):/app service-weather sh -c 'pre-commit run --all-files'

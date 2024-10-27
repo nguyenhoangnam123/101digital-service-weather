@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "src"
+version = "1.0.0"
+description = "service weather for 101digital assignment"
+authors = ["Nam Nguyen Hoang"]
+readme = "README.md"
+packages = []
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.100.0"
+pydantic = "2.3.0"
+pydantic-settings = "^2.0.3"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+pytest = "^7.2.1"
+pytest-cov = "^4.0.0"
+pytest-asyncio = "^0.21.0"
+pre-commit = "^3.3.3"
+import-linter = "^1.9.0"
+
+[[tool.poetry.source]]
+name = "PyPI"
+priority = "primary"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120

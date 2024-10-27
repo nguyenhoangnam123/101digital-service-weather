@@ -1,0 +1,9 @@
+services:
+  service-reviews:
+    image: ${TAG}
+    build:
+      context: .
+      dockerfile: cicd.Dockerfile
+      target: cicd
+    volumes:
+      - .:/app
