@@ -37,3 +37,8 @@ reports
 ### VS Code ###
 .vscode/
 .DS_Store
+
+
+### Terragrunt cache ###
+iac/**/.terragrunt-cache
+iac/**/.terraform.lock.hcl
