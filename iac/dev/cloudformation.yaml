@@ -1,0 +1,112 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "CloudFormation template to create Terraform AWS S3 remote backend"
+
+Parameters:
+  SubDomainName:
+    Type: String
+    Description: "Subdomain name for Route53 Zones"
+    Default: "dev.mightybee.dev"
+  ResourcePrefix:
+    Type: String
+    Description: "Prefix to make resource names unique"
+    Default: "mightystingbee-101digital-assignment"
+    AllowedPattern: "[a-zA-Z0-9-]*"
+    ConstraintDescription: "Only alphanumeric characters and hyphens are allowed"
+  RootAccountId:
+    Type: String
+    Description: "AWS Account ID where the role will be assumed from"
+    Default: "203918846720"
+    AllowedPattern: "[0-9]{12}"
+    ConstraintDescription: "Must be a valid 12-digit AWS account ID"
+
+Resources:
+  SubDomainHostedZone:
+    Type: "AWS::Route53::HostedZone"
+    Properties:
+      Name: !Ref SubDomainName
+      HostedZoneConfig:
+        Comment: "Subdomain hosted zone for delegation from root domain service"
+
+  TerraformAdminUser:
+    Type: "AWS::IAM::User"
+    Properties:
+      UserName: !Sub "${ResourcePrefix}-terraform-admin"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+
+  # S3 Bucket for Terraform State
+  TerraformStateBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "${ResourcePrefix}-terraform-state"
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # DynamoDB Table for State Locking
+  TerraformLockTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      TableName: !Sub "${ResourcePrefix}-terraform-lock"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: LockID
+          AttributeType: S
+      KeySchema:
+        - AttributeName: LockID
+          KeyType: HASH
+
+  # IAM Role for Terraform
+  TerraformRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub "${ResourcePrefix}-terraform-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !GetAtt TerraformAdminUser.Arn
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess # Note: Consider restricting this in production
+
+  # S3 Bucket Policy
+  TerraformStateBucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref TerraformStateBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: TerraformStateAccess
+            Effect: Allow
+            Principal:
+              AWS: !GetAtt TerraformRole.Arn
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:DeleteObject
+              - s3:ListBucket
+            Resource:
+              - !Sub "arn:aws:s3:::${ResourcePrefix}-terraform-state"
+              - !Sub "arn:aws:s3:::${ResourcePrefix}-terraform-state/*"
+
+Outputs:
+  BucketName:
+    Description: "Name of the S3 bucket for Terraform state"
+    Value: !Ref TerraformStateBucket
+  DynamoDBTable:
+    Description: "Name of the DynamoDB table for state locking"
+    Value: !Ref TerraformLockTable
+  TerraformRoleArn:
+    Description: "ARN of the Terraform IAM Role"
+    Value: !GetAtt TerraformRole.Arn
