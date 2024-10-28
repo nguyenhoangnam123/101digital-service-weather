@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 
-from src.settings.config import settings
+from src.settings.config import get_settings
+
+settings = get_settings()
 
 
 class OpenWeatherRestRequest:

@@ -1,0 +1,134 @@
+{
+	"info": {
+		"_postman_id": "f29d090a-a791-42a5-a206-d73e1c476b41",
+		"name": "service-weather",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39316775"
+	},
+	"item": [
+		{
+			"name": "get-today-weather",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "token_claim",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "{{cognito_client_secret}}",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "{{cognito_client_id}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://{{cognito_auth_domain}}/oauth2/token?client_id={{cognito_client_id}}&grant_type=client_credentials&=",
+					"protocol": "https",
+					"host": [
+						"{{cognito_auth_domain}}"
+					],
+					"path": [
+						"oauth2",
+						"token"
+					],
+					"query": [
+						{
+							"key": "client_id",
+							"value": "{{cognito_client_id}}"
+						},
+						{
+							"key": "grant_type",
+							"value": "client_credentials"
+						},
+						{
+							"key": "",
+							"value": ""
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "oauth2",
+		"oauth2": [
+			{
+				"key": "tokenName",
+				"value": "access_token",
+				"type": "string"
+			},
+			{
+				"key": "clientSecret",
+				"value": "{{cognito_client_secret}}",
+				"type": "string"
+			},
+			{
+				"key": "clientId",
+				"value": "{{cognito_client_id}}",
+				"type": "string"
+			},
+			{
+				"key": "accessTokenUrl",
+				"value": "https://{{cognito_auth_domain}}/oauth2/token",
+				"type": "string"
+			},
+			{
+				"key": "grant_type",
+				"value": "client_credentials",
+				"type": "string"
+			},
+			{
+				"key": "client_authentication",
+				"value": "header",
+				"type": "string"
+			},
+			{
+				"key": "addTokenTo",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

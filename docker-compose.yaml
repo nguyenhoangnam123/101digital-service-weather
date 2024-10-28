@@ -1,15 +1,13 @@
+version: "3.9"
 services:
   service-weather:
-    image: service-weather
     build:
       context: .
       dockerfile: Dockerfile
-      target: cicd
+    image: service-weather
     ports:
       - "8000:8080"
     command: poetry run uvicorn src.app:app --host 0.0.0.0 --port 8080 --reload
     env_file:
       - .env
       - .env.local
-    volumes:
-      - ./src:/app/src
