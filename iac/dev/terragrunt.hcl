@@ -11,6 +11,12 @@ terraform {
     execute  = ["cp", "-r", "${dirname(find_in_parent_folders())}/helms/", "./helms"]
   }
 
+  before_hook "copy_secrets" {
+    commands = get_terraform_commands_that_need_vars()
+
+    execute  = ["cp", "-r", "${dirname(find_in_parent_folders())}/secrets/", "./secrets"]
+  }
+
   extra_arguments "common_vars" {
     commands = get_terraform_commands_that_need_vars()
 

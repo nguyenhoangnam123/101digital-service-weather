@@ -18,6 +18,14 @@ Parameters:
     Default: "203918846720"
     AllowedPattern: "[0-9]{12}"
     ConstraintDescription: "Must be a valid 12-digit AWS account ID"
+  GitHubUsername:
+    Type: String
+    Description: "GithubUsername for OIDC external ID"
+    Default: "nguyenhoangnam123"
+  GitHubRepo:
+    Type: String
+    Description: "Scope for OIDC external ID"
+    Default: "101digital-service-weather"
 
 Resources:
   SubDomainHostedZone:
@@ -76,6 +84,15 @@ Resources:
             Principal:
               AWS: !GetAtt TerraformAdminUser.Arn
             Action: sts:AssumeRole
+          - Effect: Allow
+            Principal:
+              Federated: !GetAtt GitHubOIDCProvider.Arn
+            Action: "sts:AssumeRoleWithWebIdentity"
+            Condition:
+              StringEquals:
+                "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+              StringLike:
+                "token.actions.githubusercontent.com:sub": !Sub "repo:${GitHubUsername}/${GitHubRepo}:*"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess # Note: Consider restricting this in production
 
@@ -99,6 +116,64 @@ Resources:
             Resource:
               - !Sub "arn:aws:s3:::${ResourcePrefix}-terraform-state"
               - !Sub "arn:aws:s3:::${ResourcePrefix}-terraform-state/*"
+  GitHubOIDCProvider:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList:
+        - sts.amazonaws.com
+      ThumbprintList:
+        - "6938fd4d98bab03faadb97b34396831e3780aea1"
+      Tags:
+        - Key: Name
+          Value: GitHub-OIDC-Provider
+
+  SOPSKMSKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: "KMS key for SOPS encryption"
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Id: "sops-key-policy"
+        Statement:
+          - Sid: "Enable IAM User Permissions"
+            Effect: Allow
+            Principal:
+              AWS: !Ref "AWS::AccountId"
+            Action: "kms:*"
+            Resource: "*"
+
+          - Sid: "Allow terraform admin user to use the key"
+            Effect: Allow
+            Principal:
+              AWS: !GetAtt TerraformAdminUser.Arn
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:DescribeKey"
+            Resource: "*"
+
+          # Permissions for the existing IAM Role
+          - Sid: "Allow existing role to use the key"
+            Effect: Allow
+            Principal:
+              AWS: !GetAtt TerraformRole.Arn
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:DescribeKey"
+            Resource: "*"
+
+  SOPSKMSKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: "alias/sops-key"
+      TargetKeyId: !Ref SOPSKMSKey
 
 Outputs:
   BucketName:

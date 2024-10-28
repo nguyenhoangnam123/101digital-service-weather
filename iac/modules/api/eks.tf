@@ -135,6 +135,33 @@ locals {
         ]
       }
     }
+    externaldns = {
+      api = {
+        cluster          = "api"
+        node_group       = "default"
+        role_name        = "external-dns"
+        namespaces       = ["external-dns"]
+        service_accounts = ["external-dns"]
+      }
+    }
+    externalsecrets = {
+      api = {
+        cluster          = "api"
+        node_group       = "default"
+        role_name        = "external-secrest"
+        namespaces       = ["external-secrets"]
+        service_accounts = ["external-secrets"]
+      }
+    }
+    certmanager = {
+      api = {
+        cluster          = "api"
+        node_group       = "default"
+        role_name        = "cert-manager"
+        namespaces       = ["cert-manager"]
+        service_accounts = ["cert-manager"]
+      }
+    }
   }
 }
 
@@ -194,4 +221,73 @@ module "karpenter" {
   }))
 }
 
+# This module will only create role but also attach policies based 
+# irsa for externaDNS service account
+module "externaldns_irsa" {
+  for_each = {
+    for k, v in try(local.irsas.externaldns, {}) : k => v if local.create
+  }
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "5.47.1"
+
+  role_name                  = each.value.role_name
+  attach_external_dns_policy = true # allow to attach external dns policy to role
+
+  oidc_providers = {
+    one = {
+      provider_arn = module.eks[each.value.cluster].oidc_provider_arn
+      namespace_service_accounts = flatten([
+        for namespace in each.value.namespaces : [
+          for service_account in each.value.service_accounts : "${namespace}:${service_account}"
+        ]
+      ])
+    }
+  }
+}
+
+# irsa for externaDNS service account
+module "externalsecrets_irsa" {
+  for_each = {
+    for k, v in try(local.irsas.externalsecrets, {}) : k => v if local.create
+  }
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "5.47.1"
+
+  role_name                      = each.value.role_name
+  attach_external_secrets_policy = true # allow to attach external dns policy to role
+
+  oidc_providers = {
+    one = {
+      provider_arn = module.eks[each.value.cluster].oidc_provider_arn
+      namespace_service_accounts = flatten([
+        for namespace in each.value.namespaces : [
+          for service_account in each.value.service_accounts : "${namespace}:${service_account}"
+        ]
+      ])
+    }
+  }
+}
+
+# irsa for certmanager service account
+module "certmanager_irsa" {
+  for_each = {
+    for k, v in try(local.irsas.certmanager, {}) : k => v if local.create
+  }
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "5.47.1"
+
+  role_name                  = each.value.role_name
+  attach_cert_manager_policy = true
+
+  oidc_providers = {
+    one = {
+      provider_arn = module.eks[each.value.cluster].oidc_provider_arn
+      namespace_service_accounts = flatten([
+        for namespace in each.value.namespaces : [
+          for service_account in each.value.service_accounts : "${namespace}:${service_account}"
+        ]
+      ])
+    }
+  }
+}
 

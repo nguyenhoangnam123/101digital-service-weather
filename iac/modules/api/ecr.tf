@@ -1,5 +1,5 @@
 
-
+# irsa for api service account
 module "api_irsa" {
   for_each = {
     for k, v in try(local.irsas.api, {}) : k => v if local.create
@@ -7,7 +7,8 @@ module "api_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "5.47.1"
 
-  role_name = each.value.role_name
+  role_name                      = each.value.role_name
+  attach_external_secrets_policy = true
 
   oidc_providers = {
     one = {

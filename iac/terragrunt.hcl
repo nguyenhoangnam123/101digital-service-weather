@@ -30,7 +30,11 @@ generate "provider" {
         helm = {
           source  = "hashicorp/helm"
           version = ">= 2.9"
-        }        
+        }
+        sops = {
+          source = "carlpett/sops"
+          version = "1.1.1"
+        }                
       }
     }
     provider "aws" {
@@ -38,6 +42,9 @@ generate "provider" {
       assume_role {
         role_arn = "arn:aws:iam::203918846720:role/mightystingbee-101digital-assignment-terraform-role"
       }
+    }
+    provider "sops" {
+      # Configuration options
     }
     EOF
 }

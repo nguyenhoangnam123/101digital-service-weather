@@ -31,6 +31,9 @@ def register_routes(service_weather_app):
     Register application routes
     """
     service_weather_app.include_router(routers)
+    @service_weather_app.get("/health")
+    async def health_check():
+        return JSONResponse(status_code=200, content={"status": "ok"})
 
 
 app = start_app()

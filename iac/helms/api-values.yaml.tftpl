@@ -1,0 +1,77 @@
+---
+global:
+    resource_prefix: ${resource_prefix}
+    aws_region: ${region}
+    aws_account: ${aws_account}
+    environment: ${environment}
+    service_name: ${service_name}
+    service_host_name: ${service_host_name}
+    open_weather_api_key: "open_weather_api_key"
+
+deployment:
+    service_account: ${service_account}
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values:
+                - us-east-1a
+                - us-east-1b
+                - us-east-1c
+    containers:
+    - name: ${service_name}
+      image: ${image_tag}
+      extraEnvs:
+        - name: OPEN_WEATHER_DOMAIN
+          value: "${open_weather_domain}"
+        - name: OPEN_WEATHER_API_VERSION
+          value: "${open_weather_api_version}"
+        - name: COORD_LONGITUDE
+          value: "${coord_longitude}"
+        - name: COORD_LATITUDE
+          value: "${coord_latitude}"
+        - name: AWS_DEFAULT_REGION
+          value: "${region}"
+        - name: COGNITO_USER_POOL_ID
+          value: "${cognito_user_pool_id}"
+        - name: COGNITO_APP_CLIENT_ID
+          value: "${cognito_app_client_id}"
+        - name: COGNITO_SCOPE_KEY
+          value: "${cognito_scope_key}"
+    resources:
+        requests:
+            cpu: ${cpu_requests}
+            memory: ${mem_requests}
+        limits:
+            cpu: ${cpu_limits}
+            memory: ${mem_limits}
+
+service:
+    annotations:
+        # General AWS Load Balancer annotations
+        service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+        service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+        service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "60"
+        service.beta.kubernetes.io/aws-load-balancer-ssl-ports: https
+        service.beta.kubernetes.io/aws-load-balancer-ssl-negotiation-policy: "ELBSecurityPolicy-TLS13-1-2-2021-06"
+        service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+        # Health check configuration
+        service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol: "HTTP"
+        service.beta.kubernetes.io/aws-load-balancer-healthcheck-path: "/health"
+        service.beta.kubernetes.io/aws-load-balancer-healthcheck-port: "8080"
+        service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval: "30"
+        service.beta.kubernetes.io/aws-load-balancer-healthcheck-timeout: "6"
+        service.beta.kubernetes.io/aws-load-balancer-healthcheck-healthy-threshold: "2"
+        service.beta.kubernetes.io/aws-load-balancer-healthcheck-unhealthy-threshold: "2"        
+
+
+ingress:
+    annotations:
+        alb.ingress.kubernetes.io/scheme: "internet-facing"
+        alb.ingress.kubernetes.io/target-type: "ip"
+        alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+        alb.ingress.kubernetes.io/ssl-redirect: "https"
+        alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-1-2017-01
+        external-dns.alpha.kubernetes.io/hostname: ${service_host_name} # Replace with your domain
