@@ -3,27 +3,43 @@ name: CI
 on:
   workflow_call:
     inputs:
-      environment:
+      aws_account:
         type: string
-        description: "Environment to deploy to"
+        description: "AWS account to deploy to"
+        required: true
+      aws_region:
+        type: string
+        description: "AWS region to deploy to"
+        required: true
+      aws_assume_role:
+        type: string
+        description: "AWS role to assume"
+        required: true
+      resource_prefix:
+        type: string
+        description: "resource_prefix for AWS resource name"
+        required: true
+      service_name:
+        type: string
+        description: "service name"
+        required: true
+      eks_cluster_name:
+        type: string
+        description: "EKS cluster name"
         required: true
 
 env:
-  AWS_ACCOUNT: ${{ vars.AWS_ACCOUNT_ID }}
-  AWS_REGION: ${{ vars.AWS_REGION }}
-  AWS_ROLE_ARN: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/${{ vars.AWS_ASSUME_ROLE }}
-  RESOURCE_PREFIX: ${{ vars.RESOURCE_PREFIX }}
-  SERVICE_NAME: ${{ vars.SERVICE_NAME }}
-  EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
-  REPOSITORY_ID: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/${{ vars.RESOURCE_PREFIX }}-ecr
+  AWS_ACCOUNT: ${{ inputs.aws_account }}
+  AWS_REGION: ${{ inputs.aws_region }}
+  AWS_ROLE_ARN: arn:aws:iam::${{ inputs.aws_account }}:role/${{ inputs.aws_assume_role }}
+  RESOURCE_PREFIX: ${{ inputs.resource_prefix }}
+  SERVICE_NAME: ${{ inputs.service_name }}
+  EKS_CLUSTER_NAME: ${{ inputs.eks_cluster_name }}
+  REPOSITORY_ID: ${{ inputs.aws_account }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/${{ inputs.resource_prefix }}-ecr
 
 jobs:
   build-and-push:
-    concurrency:
-      group: ${{ github.head_ref }}-init
-      cancel-in-progress: true
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
 
     permissions:
       id-token: write
@@ -75,10 +91,6 @@ jobs:
           pull: true
           tags: ${{ steps.docker-metadata.outputs.tags }}
           platforms: linux/x86_64
-
-      - name: Configure kubectl
-        run: |
-          aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }} --role-arn ${{ env.AWS_ROLE_ARN }}
 
       - name: Install Terragrunt
         run: |
