@@ -8,8 +8,10 @@ on:
 env:
   AWS_ACCOUNT: 203918846720
   AWS_REGION: us-east-1
+  AWS_ROLE_ARN: arn:aws:iam::203918846720:role/mightystingbee-101digital-assignment-terraform-role
   RESOURCE_PREFIX: mightystingbee
   SERVICE_NAME: service-weather
+  EKS_CLUSTER_NAME: mightystingbee-api
   REPOSITORY_ID: 203918846720.dkr.ecr.us-east-1.amazonaws.com/mightystingbee-ecr
 
 jobs:
@@ -31,21 +33,21 @@ jobs:
 
       - name: Configure AWS CLI
         run: |
-          aws configure set region us-east-1
+          aws configure set region ${{ env.AWS_REGION }}
 
       - name: Assume IAM Role
         id: assume-role
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: arn:aws:iam::203918846720:role/mightystingbee-101digital-assignment-terraform-role
-          aws-region: us-east-1
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v1
         with:
-          role-to-assume: arn:aws:iam::203918846720:role/mightystingbee-101digital-assignment-terraform-role
-          aws-region: us-east-1
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Docker metadata
         id: docker-metadata
@@ -55,7 +57,7 @@ jobs:
             ${{ env.REPOSITORY_ID }}
           tags: |
             type=sha,format=short,enable=true
-            type=raw,value=latest,suffix=${{ github.sha }},enable=true
+            type=raw,value=latest,suffix=-${{ github.sha }},enable=true
 
       - name: Build image
         id: build-and-push
@@ -67,3 +69,18 @@ jobs:
           pull: true
           tags: ${{ steps.docker-metadata.outputs.tags }}
           platforms: linux/x86_64
+
+      - name: Configure kubectl
+        run: |
+          aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }} --role-arn ${{ env.AWS_ROLE_ARN }}
+
+      - name: Install Terragrunt
+        run: |
+          export ARCH="amd64"
+          cd ./scripts && chmod +x install_terragrunt.sh && ./install_terragrunt.sh $ARCH
+          tg --version
+
+      - name: Deploy on Dev environment
+        working-directory: ./iac/dev
+        run: |
+          tg init && tg apply -auto-approve
