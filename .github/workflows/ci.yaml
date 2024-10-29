@@ -2,10 +2,11 @@ name: CI
 
 on:
   workflow_call:
-    environment:
-      type: string
-      description: "Environment to deploy to"
-      required: true
+    inputs:
+      environment:
+        type: string
+        description: "Environment to deploy to"
+        required: true
 
 env:
   AWS_ACCOUNT: ${{ vars.AWS_ACCOUNT_ID }}

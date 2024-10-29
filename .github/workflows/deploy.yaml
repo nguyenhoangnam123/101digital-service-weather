@@ -1,9 +1,10 @@
 on:
   workflow_call:
-    environment:
-      type: string
-      description: "Environment to deploy to"
-      required: true
+    inputs:
+      environment:
+        type: string
+        description: "Environment to deploy to"
+        required: true
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
