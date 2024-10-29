@@ -5,14 +5,14 @@ on:
     branches:
       - main
 
-env:
-  AWS_ACCOUNT: 203918846720
-  AWS_REGION: us-east-1
-  AWS_ROLE_ARN: arn:aws:iam::203918846720:role/mightystingbee-101digital-assignment-terraform-role
-  RESOURCE_PREFIX: mightystingbee
-  SERVICE_NAME: service-weather
-  EKS_CLUSTER_NAME: mightystingbee-api
-  REPOSITORY_ID: 203918846720.dkr.ecr.us-east-1.amazonaws.com/mightystingbee-ecr
+# env:
+#   AWS_ACCOUNT: 203918846720
+#   AWS_REGION: us-east-1
+#   AWS_ROLE_ARN: arn:aws:iam::203918846720:role/mightystingbee-101digital-assignment-terraform-role
+#   RESOURCE_PREFIX: mightystingbee
+#   SERVICE_NAME: service-weather
+#   EKS_CLUSTER_NAME: mightystingbee-api
+#   REPOSITORY_ID: 203918846720.dkr.ecr.us-east-1.amazonaws.com/mightystingbee-ecr
 
 jobs:
   build-and-push:
@@ -22,12 +22,12 @@ jobs:
     uses: ./.github/workflows/ci.yaml
     secrets: inherit
     with:
-      aws_account: ${{ env.AWS_ACCOUNT }}
-      aws_region: ${{ env.AWS_REGION }}
-      aws_assume_role: ${{ env.AWS_ROLE_ARN }}
-      resource_prefix: ${{ env.RESOURCE_PREFIX }}
-      service_name: ${{ env.SERVICE_NAME }}
-      eks_cluster_name: ${{ env.EKS_CLUSTER_NAME }}
+      aws_account: ${{ vars.AWS_ACCOUNT_DEV }}
+      aws_region: ${{ vars.AWS_REGION_DEV }}
+      aws_assume_role: ${{ vars.AWS_ASSUME_ROLE_DEV }}
+      resource_prefix: ${{ vars.RESOURCE_PREFIX_DEV }}
+      service_name: ${{ vars.SERVICE_NAME_DEV }}
+      eks_cluster_name: ${{ vars.EKS_CLUSTER_NAME_DEV }}
 
   terragrunt-apply-dev:
     permissions:
