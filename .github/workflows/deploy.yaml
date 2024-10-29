@@ -40,7 +40,7 @@ jobs:
       - name: Install Terragrunt
         run: |
           export ARCH="amd64"
-          cd ./scripts && chmod +x install_terragrunt.sh && ./install_terragrunt.sh $ARCH
+          cd ./iac/scripts && chmod +x install_terragrunt.sh && ./install_terragrunt.sh $ARCH
           terragrunt --version
 
       - name: Deploy on Dev environment
