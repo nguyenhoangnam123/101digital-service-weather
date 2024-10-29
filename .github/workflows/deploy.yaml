@@ -17,9 +17,6 @@ env:
 
 jobs:
   terragrunt-apply:
-    concurrency:
-      group: ${{ github.head_ref }}-init
-      cancel-in-progress: true
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:

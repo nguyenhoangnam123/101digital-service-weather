@@ -20,8 +20,6 @@ jobs:
       id-token: write
       contents: read
     uses: ./.github/workflows/deploy.yaml
-    needs:
-      - build-and-push
     secrets: inherit
     with:
       environment: prod
