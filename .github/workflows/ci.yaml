@@ -98,7 +98,7 @@ jobs:
 
       - name: Fullfill service image
         run: |
-          echo service_weather_image_tag=latest-${{ github.run_number }} >> ./iac/tfvars/${{ inputs.environment }}.tfvars
+          echo service_weather_image_tag="latest-${{ github.run_number }}" >> ./iac/tfvars/${{ inputs.environment }}.tfvars
           cat ./iac/tfvars/${{ inputs.environment }}.tfvars
 
       - name: Install Terragrunt

@@ -34,7 +34,7 @@ class AccessUser(BaseModel):
     scope: str
 
 
-@routers.get("/get-today-weather", dependencies=[Depends(auth.scope(["test/weatherforcastapi"]))])
+@routers.get("/get-today-weather", dependencies=[Depends(auth.scope(["https://auth.dev.mightybee.dev/get:today-weather"]))])
 async def get_today_weather():
     response = requests.get(f"{OPEN_WEATHER_REST.get_weather_url()}", headers={"Content-Type": "application/json"})
     logger.info(f"response is {response.json()}, status is {response.status_code}")
