@@ -89,4 +89,4 @@ jobs:
       - name: Deploy on Dev environment
         working-directory: ./iac/${{ inputs.environment }}
         run: |
-          terragrunt init && terragrunt apply -auto-approve
+          terragrunt init && terragrunt plan
