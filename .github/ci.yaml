@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_ACCOUNT: 203918846720
+  AWS_REGION: us-east-1
+  RESOURCE_PREFIX: mightystingbee
+  SERVICE_NAME: service-weather
+  REPOSITORY_ID: ${{ env.AWS_ACCOUNT }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.RESOURCE_PREFIX }}-ecr
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
+
+      - name: Configure AWS CLI
+        run: |
+          aws configure set region us-east-1
+
+      - name: Assume IAM Role
+        id: assume-role
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::203918846720:role/mightystingbee-101digital-assignment-terraform-role
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Docker metadata
+        id: docker-metadata
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            ${{ env.REPOSITORY_ID }}
+          tags: |
+            type=sha
+            type=ref,event=pr
+            type=raw,value=latest,enable=true
+
+      - name: Build image
+        id: build-and-push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          pull: true
+          tags: ${{ steps.docker-metadata.outputs.tags }}
+          platforms: linux/x86_64
+
+      # - name: Build Docker image
+      #   run: |
+      #     docker build -t 203918846720.dkr.ecr.us-east-1.amazonaws.com/my-repo:latest .
+      #     docker tag 203918846720.dkr.ecr.us-east-1.amazonaws.com/my-repo:latest 203918846720.dkr.ecr.us-east-1.amazonaws.com/my-repo:${{ github.sha }}
+
+      # - name: Push Docker image to ECR
+      #   run: |
+      #     docker push 203918846720.dkr.ecr.us-east-1.amazonaws.com/my-repo:latest
+      #     docker push 203918846720.dkr.ecr.us-east-1.amazonaws.com/my-repo:${{ github.sha }}

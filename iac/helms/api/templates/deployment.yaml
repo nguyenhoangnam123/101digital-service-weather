@@ -13,11 +13,11 @@ spec:
     aws:
       service: SecretsManager
       region: {{ .Values.global.aws_region }}
-      # auth:
-      #   jwt:
-      #     serviceAccountRef:
-      #       name: {{ .Values.deployment.service_account }}
-      role: arn:aws:iam::{{ .Values.deployment.aws_account }}:role/{{ .Values.deployment.service_account }}
+      auth:
+        jwt:
+          serviceAccountRef:
+            name: {{ .Values.deployment.service_account }}
+      # role: arn:aws:iam::{{ .Values.deployment.aws_account }}:role/{{ .Values.deployment.service_account }}
 ---
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
