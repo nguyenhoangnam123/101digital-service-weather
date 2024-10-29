@@ -22,6 +22,7 @@ jobs:
     uses: ./.github/workflows/ci.yaml
     secrets: inherit
     with:
+      environment: prod
       aws_account: ${{ vars.AWS_ACCOUNT_PROD }}
       aws_region: ${{ vars.AWS_REGION_PROD }}
       aws_assume_role: ${{ vars.AWS_ASSUME_ROLE_PROD }}
