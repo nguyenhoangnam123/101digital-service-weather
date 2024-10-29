@@ -39,9 +39,9 @@ generate "provider" {
     }
     provider "aws" {
       region = "us-east-1"
-      assume_role {
-        role_arn = "arn:aws:iam::203918846720:role/mightystingbee-101digital-assignment-terraform-role"
-      }
+      # assume_role {
+      #   role_arn = "arn:aws:iam::203918846720:role/mightystingbee-101digital-assignment-terraform-role"
+      # }
     }
     provider "sops" {
       # Configuration options
