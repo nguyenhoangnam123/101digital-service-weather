@@ -1,0 +1,46 @@
+on:
+  workflow_call:
+    environment:
+      type: string
+      description: "Environment to deploy to"
+      required: true
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_ROLE_ARN: arn:aws:iam::${{ AWS_ACCOUNT_ID }}:role/${{ vars.AWS_ASSUME_ROLE }}
+  EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
+  REPOSITORY_ID: ${{ AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.RESOURCE_PREFIX }}-ecr
+  SERVICE_NAME: service-weather
+
+jobs:
+  terragrunt-apply:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS CLI
+        run: |
+          aws configure set region ${{ env.AWS_REGION }}
+
+      - name: Assume IAM Role
+        id: assume-role
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Configure kubectl
+        run: |
+          aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }} --role-arn ${{ env.AWS_ROLE_ARN }}
+
+      - name: Install Terragrunt
+        run: |
+          export ARCH="amd64"
+          cd ./scripts && chmod +x install_terragrunt.sh && ./install_terragrunt.sh $ARCH
+          terragrunt --version
+
+      - name: Deploy on Dev environment
+        working-directory: ./iac/${{ inputs.environment }}
+        run: |
+          terragrunt init && terragrunt apply -auto-approve

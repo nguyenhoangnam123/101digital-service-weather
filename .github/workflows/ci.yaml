@@ -1,21 +1,23 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - main
+  workflow_call:
+    environment:
+      type: string
+      description: "Environment to deploy to"
+      required: true
 
 env:
-  AWS_ACCOUNT: 203918846720
-  AWS_REGION: us-east-1
-  AWS_ROLE_ARN: arn:aws:iam::203918846720:role/mightystingbee-101digital-assignment-terraform-role
-  RESOURCE_PREFIX: mightystingbee
-  SERVICE_NAME: service-weather
-  EKS_CLUSTER_NAME: mightystingbee-api
-  REPOSITORY_ID: 203918846720.dkr.ecr.us-east-1.amazonaws.com/mightystingbee-ecr
+  AWS_ACCOUNT: ${{ vars.AWS_ACCOUNT_ID }}
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_ROLE_ARN: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/${{ vars.AWS_ASSUME_ROLE }}
+  RESOURCE_PREFIX: ${{ vars.RESOURCE_PREFIX }}
+  SERVICE_NAME: ${{ vars.SERVICE_NAME }}
+  EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
+  REPOSITORY_ID: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/${{ vars.RESOURCE_PREFIX }}-ecr
 
 jobs:
-  build-and-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
 
     permissions:
@@ -23,8 +25,7 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install AWS CLI
         run: |
@@ -69,18 +70,3 @@ jobs:
           pull: true
           tags: ${{ steps.docker-metadata.outputs.tags }}
           platforms: linux/x86_64
-
-      - name: Configure kubectl
-        run: |
-          aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }} --role-arn ${{ env.AWS_ROLE_ARN }}
-
-      - name: Install Terragrunt
-        run: |
-          export ARCH="amd64"
-          cd ./scripts && chmod +x install_terragrunt.sh && ./install_terragrunt.sh $ARCH
-          tg --version
-
-      - name: Deploy on Dev environment
-        working-directory: ./iac/dev
-        run: |
-          tg init && tg apply -auto-approve

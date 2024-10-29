@@ -1,0 +1,34 @@
+name: Terragrunt Apply Dev
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_ACCOUNT: ${{ vars.AWS_ACCOUNT_ID }}
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_ROLE_ARN: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/${{ vars.AWS_ASSUME_ROLE }}
+  RESOURCE_PREFIX: ${{ vars.RESOURCE_PREFIX }}
+  SERVICE_NAME: ${{ vars.SERVICE_NAME }}
+  EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
+  REPOSITORY_ID: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/${{ vars.RESOURCE_PREFIX }}-ecr
+
+jobs:
+  build-and-push:
+    permissions:
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/ci.yaml
+    secrets: inherit
+    with:
+      environment: dev
+
+  terragrunt-apply-dev:
+    permissions:
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/deploy.yaml
+    secrets: inherit
+    with:
+      environment: dev
