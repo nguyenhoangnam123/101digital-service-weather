@@ -22,6 +22,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Fullfill service image
+        run: |
+          echo service_weather_image_tag=latest-${{ github.run_number }} >> ./iac/tfvars/${{ inputs.environment }}.tfvars
+          cat ./iac/tfvars/${{ inputs.environment }}.tfvars
+
       - name: Configure AWS CLI
         run: |
           aws configure set region ${{ env.AWS_REGION }}
