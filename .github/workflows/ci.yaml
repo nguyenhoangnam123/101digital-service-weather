@@ -10,7 +10,7 @@ env:
   AWS_REGION: us-east-1
   RESOURCE_PREFIX: mightystingbee
   SERVICE_NAME: service-weather
-  REPOSITORY_ID: ${{ env.AWS_ACCOUNT }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.RESOURCE_PREFIX }}-ecr
+  REPOSITORY_ID: 203918846720.dkr.ecr.us-east-1.amazonaws.com/mightystingbee-ecr
 
 jobs:
   build-and-deploy:
