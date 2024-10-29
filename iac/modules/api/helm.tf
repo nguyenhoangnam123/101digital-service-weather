@@ -3,7 +3,10 @@ data "aws_ecrpublic_authorization_token" "token" {}
 
 # Get secrets from SOPS encrypted file
 data "sops_file" "secrets" {
-  source_file = "${path.module}/secrets/secrets.${var.environment}.encrypted.yaml"
+  source_file = try(
+    "${path.module}/secrets/secrets.${var.environment}.encrypted.yaml",
+    "${path.module}/secrets/secrets.encrypted.yaml",
+  )
 }
 
 provider "kubernetes" {
