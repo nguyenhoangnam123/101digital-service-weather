@@ -43,6 +43,9 @@ jobs:
       - name: Login to Amazon ECR
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v1
+        with:
+          role-to-assume: arn:aws:iam::203918846720:role/mightystingbee-101digital-assignment-terraform-role
+          aws-region: us-east-1
 
       - name: Docker metadata
         id: docker-metadata
@@ -51,9 +54,8 @@ jobs:
           images: |
             ${{ env.REPOSITORY_ID }}
           tags: |
-            type=sha
-            type=ref,event=pr
-            type=raw,value=latest,enable=true
+            type=sha,format=short,enable=true
+            type=raw,value=latest,suffix=${{ github.sha }},enable=true
 
       - name: Build image
         id: build-and-push
@@ -65,13 +67,3 @@ jobs:
           pull: true
           tags: ${{ steps.docker-metadata.outputs.tags }}
           platforms: linux/x86_64
-
-      # - name: Build Docker image
-      #   run: |
-      #     docker build -t 203918846720.dkr.ecr.us-east-1.amazonaws.com/my-repo:latest .
-      #     docker tag 203918846720.dkr.ecr.us-east-1.amazonaws.com/my-repo:latest 203918846720.dkr.ecr.us-east-1.amazonaws.com/my-repo:${{ github.sha }}
-
-      # - name: Push Docker image to ECR
-      #   run: |
-      #     docker push 203918846720.dkr.ecr.us-east-1.amazonaws.com/my-repo:latest
-      #     docker push 203918846720.dkr.ecr.us-east-1.amazonaws.com/my-repo:${{ github.sha }}
