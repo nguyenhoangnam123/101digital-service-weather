@@ -4,14 +4,14 @@ locals {
   eks_managed_node_group_defaults = {
     ami_type               = "AL2_x86_64"
     disk_size              = 50
-    instance_types         = ["t2.micro", "t2.small", "t2.medium"]
+    instance_types         = try(var.managed_node_group_instance_types, ["t2.micro", "t2.small", "t2.medium"])
     vpc_security_group_ids = []
   }
 
   eks_clusters = {
     api = {
       name_suffix = "api"
-      version     = "1.31"
+      version     = try(var.eks_cluster_version, "1.31")
       cluster_addons = {
         coredns                = {}
         eks-pod-identity-agent = {}
@@ -36,11 +36,11 @@ locals {
       }
       eks_managed_node_groups = {
         default = {
-          instance_types = ["t2.small"]
+          instance_types = try(var.default_managed_node_group_instance_type, ["t2.small"])
           min_size       = 1
           max_size       = 10
           desired_size   = 1
-          capacity_type  = "SPOT"
+          capacity_type  = try(var.default_managed_node_group_capacity_type, "SPOT")
           labels = try(merge(local.common_tags, {
             manageNodeGroup = "true"
             purpose         = "default"

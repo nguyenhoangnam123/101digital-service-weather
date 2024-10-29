@@ -18,6 +18,28 @@ variable "terraform_admin_user_name" {
   default     = "terraform-admin"
 }
 
+# EKS
+variable "eks_cluster_version" {
+  description = "EKS cluster version"
+  default     = "1.31"
+}
+
+variable "managed_node_group_instance_types" {
+  description = "values for instance types"
+  default = ["t2.micro", "t2.small", "t2.medium"]
+}
+
+variable "default_managed_node_group_instance_type" {
+  description = "values for instance types"
+  default = ["t2.small"]
+}
+
+variable "default_managed_node_group_capacity_type" {
+  description = "values for instance capacity type"
+  default = "SPOT"
+}
+
+# service-weather
 variable "root_domain" {
   default = "mightybee.dev"
 }
@@ -60,4 +82,8 @@ variable "cpu_requests" {
 
 variable "cpu_limits" {
   default = "200m"
+}
+
+variable "service_weather_image_tag" {
+  default = "latest"
 }

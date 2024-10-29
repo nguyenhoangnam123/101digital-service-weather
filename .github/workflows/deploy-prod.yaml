@@ -1,9 +1,9 @@
-name: Terragrunt Apply Dev
+name: Terragrunt Apply Prod
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - releases-v*
 
 env:
   AWS_ACCOUNT: ${{ vars.AWS_ACCOUNT_ID }}
@@ -15,20 +15,13 @@ env:
   REPOSITORY_ID: ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/${{ vars.RESOURCE_PREFIX }}-ecr
 
 jobs:
-  build-and-push:
-    permissions:
-      id-token: write
-      contents: read
-    uses: ./.github/workflows/ci.yaml
-    secrets: inherit
-    with:
-      environment: dev
-
-  terragrunt-apply-dev:
+  terragrunt-apply-prod:
     permissions:
       id-token: write
       contents: read
     uses: ./.github/workflows/deploy.yaml
+    needs:
+      - build-and-push
     secrets: inherit
     with:
-      environment: dev
+      environment: prod

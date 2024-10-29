@@ -141,7 +141,7 @@ locals {
           service_host_name        = "${var.service_name}.${var.environment}.${var.root_domain}"
           service_account          = "api"
           azs                      = ["a", "b", "c"]
-          image_tag                = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.region}.amazonaws.com/${var.resource_prefix}-ecr:latest"
+          image_tag                = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.region}.amazonaws.com/${var.resource_prefix}-ecr:${var.service_weather_image_tag}"
           cpu_requests             = var.cpu_requests
           mem_requests             = var.mem_requests
           cpu_limits               = var.cpu_limits
