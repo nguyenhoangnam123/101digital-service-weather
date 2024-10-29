@@ -107,7 +107,7 @@ jobs:
           cd ./iac/scripts && chmod +x install_terragrunt.sh && ./install_terragrunt.sh $ARCH
           terragrunt --version
 
-      - name: Terragrunt plan on ${{ uppercase(inputs.environment) }} environment
+      - name: Terragrunt plan on ${{ inputs.environment }} environment
         working-directory: ./iac/${{ inputs.environment }}
         run: |
           terragrunt init && terragrunt plan
